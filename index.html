@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MomoTheZenCat</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='32' fill='%23F28C28'/><g fill='%23fff'><path d='M15 35 L17 12 L30 24 Z'/><path d='M49 35 L47 12 L34 24 Z'/><ellipse cx='32' cy='37' rx='18' ry='15'/></g><g fill='%23F28C28'><ellipse cx='25' cy='36' rx='2.4' ry='3.4'/><ellipse cx='39' cy='36' rx='2.4' ry='3.4'/><path d='M29.5 42 h5 l-2.5 3 z'/></g></svg>">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #000; color: #eee; overflow: hidden;
@@ -20,8 +21,12 @@
     border-radius: 8px; padding: 12px; font: 14px/1.6 ui-monospace, Menlo, monospace; }
   .row { display: flex; align-items: center; gap: 18px; margin-top: 14px; flex-wrap: wrap; font-size: 14px; }
   .row select { background: #0d0f12; color: #eee; border: 1px solid #2f3540; border-radius: 6px; padding: 4px 8px; }
-  .primary { background: #2f7cf6; border: 0; border-radius: 8px; padding: 10px 22px; font-weight: 600; color: #fff; margin-left: auto; }
+  .actions { margin-left: auto; display: flex; gap: 10px; }
+  .primary, .secondary { border-radius: 8px; padding: 10px 22px; font-weight: 600; }
+  .primary { background: #2f7cf6; border: 0; color: #fff; }
   .primary:hover { background: #4a8ff8; }
+  .secondary { background: #262b34; border: 1px solid #353c48; }
+  .secondary:hover { background: #303643; }
   .warn { background: #3a2a10; border: 1px solid #7a5418; color: #f3c879; border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-bottom: 14px; line-height: 1.6; }
   .warn code { background: #00000055; padding: 1px 6px; border-radius: 4px; }
 
@@ -31,7 +36,7 @@
   .scene { position: absolute; inset: 0; display: grid; gap: 2px; background: #3a3a3a; visibility: hidden; }
   .scene.active { visibility: visible; }
   .tile { position: relative; background: #000; overflow: hidden; min-width: 0; min-height: 0; }
-  .tile iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .tile iframe, .twbox { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column;
     gap: 6px; color: #555; font-size: 15px; text-align: center; padding: 20px; }
   .placeholder.err { color: #e08a8a; }
@@ -52,6 +57,13 @@
   .scene.focus .tile.big { grid-column: 1; grid-row: 1 / -1; }
   .scene.focus .tile.vacant { display: none; }
 
+  /* drag a window's number badge onto another window (or a dock cell) to swap them */
+  .badge { cursor: grab; }
+  body.dragging iframe { pointer-events: none; }   /* iframes would otherwise swallow drag events */
+  .tile.drop::after { content: ''; position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    border: 3px solid #2f7cf6; background: #2f7cf626; }
+  .mini div.drop { outline: 2px solid #2f7cf6; outline-offset: -1px; background: #2f7cf6aa; }
+
   .note { position: absolute; bottom: 12px; left: 12px; z-index: 2; pointer-events: none; max-width: 65%;
     background: rgba(0,0,0,.45); border-radius: 6px; padding: 6px 10px; white-space: pre-wrap; word-break: break-word;
     font-size: var(--note-size, 16px); line-height: 1.35; font-weight: 600; text-shadow: 0 1px 2px #000; }
@@ -59,23 +71,31 @@
   .note:empty { display: none; }
 
   /* ---------- dock ---------- */
-  #dock { flex: none; height: 118px; background: #121418; border-top: 1px solid #262a31; display: flex; align-items: center;
-    gap: 10px; padding: 0 14px; transition: transform .2s; z-index: 5; }
+  #dock { flex: none; height: 124px; background: #121418; border-top: 1px solid #262a31; display: flex; align-items: center;
+    gap: 14px; padding: 0 14px; transition: transform .2s; z-index: 5; }
   #scenes { flex: 1; display: flex; gap: 14px; justify-content: center; overflow-x: auto; height: 100%; align-items: center; }
-  .thumb { flex: none; padding: 6px 8px 8px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; }
+  .thumb { flex: none; height: 112px; padding: 6px 8px 8px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; }
   .thumb:hover { background: #1b1f26; }
   .thumb.active { border-color: #2f7cf6; background: #182233; }
-  .thumb .lbl { font-size: 12px; color: #9aa3b2; margin-bottom: 4px; }
+  .thumb .lbl { font-size: 12px; line-height: 15px; color: #9aa3b2; margin-bottom: 4px; }
   .thumb.active .lbl { color: #fff; font-weight: 600; }
-  .mini { display: grid; gap: 2px; width: 140px; aspect-ratio: 16 / 9; }
+  .mini { display: grid; gap: 2px; width: 132px; aspect-ratio: 16 / 9; }
   .mini div { background: #2a2e36; border-radius: 3px; font-size: 11px; display: flex; align-items: center; justify-content: center;
     overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 3px; color: #ddd; }
   .mini div.void { background: transparent; border: 1px dashed #333; color: #444; }
   .mini div.big { background: #2f7cf6; color: #fff; font-weight: 700; }
-  .tools { display: flex; flex-direction: column; gap: 6px; }
-  .tools div { display: flex; gap: 6px; }
-  .tools button { background: #1e232b; border: 1px solid #2f3540; border-radius: 6px; padding: 4px 10px; font-size: 12px; white-space: nowrap; }
-  .tools button:hover { background: #283040; }
+
+  .panel { flex: none; height: 112px; padding: 6px 8px 8px; border-radius: 10px; border: 2px solid #262b33; background: #15181d;
+    display: flex; flex-direction: column; }
+  .panel .lbl { font-size: 12px; line-height: 15px; color: #9aa3b2; margin-bottom: 4px; display: flex; }
+  #twWarn { margin-left: auto; color: #f3c879; font-size: 11px; cursor: help; }
+  .ctrls { flex: 1; display: grid; grid-template-columns: repeat(6, 44px); grid-template-rows: 1fr 1fr; gap: 3px; }
+  .ctrls button { grid-column: span 2; background: #2a2e36; border: 0; border-radius: 4px; color: #ddd; font-size: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; padding: 0 6px; }
+  .ctrls button.one { grid-column: span 1; }
+  .ctrls button:hover { background: #363c47; color: #fff; }
+  .ctrls button:active { background: #2f7cf6; color: #fff; }
+  .ctrls svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
 
   #app.clean #dock { position: absolute; left: 0; right: 0; bottom: 0; transform: translateY(100%); }
   #app.clean.peek #dock { transform: none; }
@@ -104,23 +124,26 @@
 <div id="setup">
   <div class="card">
     <h1>MomoTheZenCat</h1>
-    <p class="sub">每行（或用空白分隔）貼一個直播網址，支援 YouTube / Twitch。</p>
+    <p class="sub">Paste one stream URL per line (or separated by spaces). YouTube and Twitch are supported.</p>
     <div class="warn" id="fileWarn" hidden>
-      目前是用 <code>file://</code> 開啟，YouTube / Twitch 嵌入可能無法播放（Twitch 一定要有網域）。<br>
-      請在此檔案所在資料夾執行 <code>python3 -m http.server 8000</code>，再開
-      <code>http://localhost:8000/multiview.html</code>
+      This page is opened via <code>file://</code>, so YouTube / Twitch embeds may not play (Twitch requires a domain).<br>
+      In this file's folder run <code>python3 -m http.server 8000</code>, then open
+      <code id="localUrl">http://localhost:8000/</code>
     </div>
     <textarea id="urlInput" spellcheck="false" placeholder="https://www.youtube.com/@momothezencat
 https://www.twitch.tv/goatunnheim"></textarea>
     <div class="row">
-      <label>每個 Scene 視窗數
+      <label>Windows per scene
         <select id="perScene">
           <option>1</option><option>2</option><option>3</option><option selected>4</option>
           <option>6</option><option>8</option><option>9</option>
         </select>
       </label>
-      <label><input type="checkbox" id="muted" checked> 預設靜音（確保自動播放）</label>
-      <button class="primary" id="startBtn">開始 ▶</button>
+      <label><input type="checkbox" id="muted" checked> Start muted (ensures autoplay)</label>
+      <div class="actions">
+        <button class="secondary" id="cancelBtn" title="Esc">Cancel</button>
+        <button class="primary" id="startBtn">Start ▶</button>
+      </div>
     </div>
   </div>
 </div>
@@ -130,28 +153,38 @@ https://www.twitch.tv/goatunnheim"></textarea>
   <div id="hot"></div>
   <div id="dock">
     <div id="scenes"></div>
-    <div class="tools">
-      <div><button id="fontDown">A−</button><button id="fontUp">A+</button><button id="ratioBtn" title="放大比例">⤢ 70%</button></div>
-      <button id="cleanBtn">隱藏 UI (H)</button>
-      <button id="editBtn">⚙ 編輯清單</button>
+    <div class="panel">
+      <div class="lbl">Controls<span id="twWarn" hidden
+        title="Twitch blocks autoplay and Play all when anything is drawn over its player (badges, notes). Click play inside each Twitch player instead.">⚠ Twitch: press play in the player</span></div>
+      <div class="ctrls">
+        <button id="playAll" class="one" title="Play all"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></svg></button>
+        <button id="pauseAll" class="one" title="Pause all"><svg viewBox="0 0 24 24"><path d="M6 4.5h4v15H6zm8 0h4v15h-4z"/></svg></button>
+        <button id="fontDown" class="one" title="Smaller notes">A−</button>
+        <button id="fontUp" class="one" title="Larger notes">A+</button>
+        <button id="ratioBtn" title="Enlarged window size">⤢ 70%</button>
+        <button id="cleanBtn" title="Hide / show UI (H)">Hide UI (H)</button>
+        <button id="clearNotesBtn" title="Clear all notes">Clear notes</button>
+        <button id="editBtn" title="Edit stream list">Edit list</button>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="pop" hidden>
-  <div class="head"><span id="popTitle">#1</span><button id="popClose" title="關閉 (Esc)">×</button></div>
-  <label>直播網址</label>
+  <div class="head"><span id="popTitle">#1</span><button id="popClose" title="Close (Esc)">×</button></div>
+  <label>Stream URL</label>
   <div class="line">
     <input type="text" id="popUrl" spellcheck="false" placeholder="https://www.twitch.tv/...">
-    <button class="go" id="popApply">套用</button>
+    <button class="go" id="popApply">Apply</button>
   </div>
-  <label>註解（顯示在視窗角落）</label>
-  <textarea id="popNote" spellcheck="false" placeholder="名字&#10;fcr: 30, str: 25, fhr: 35"></textarea>
+  <label>Note (shown in the window corner)</label>
+  <textarea id="popNote" spellcheck="false" placeholder="Name&#10;fcr: 30, str: 25, fhr: 35"></textarea>
   <div class="seg">
-    <span style="color:#8b93a1">位置</span>
-    <button data-corner="bl">左下</button>
-    <button data-corner="br">右下</button>
-    <button class="danger" id="popClear">移除視窗</button>
+    <span style="color:#8b93a1">Position</span>
+    <button data-corner="auto" title="Left windows: bottom left · right windows: bottom right">Auto</button>
+    <button data-corner="bl">Left</button>
+    <button data-corner="br">Right</button>
+    <button class="danger" id="popClear">Remove</button>
   </div>
 </div>
 
@@ -171,7 +204,7 @@ function toEmbed(raw) {
   if (!raw) return null;
   if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
   let u;
-  try { u = new URL(raw); } catch { return { error: '網址格式錯誤' }; }
+  try { u = new URL(raw); } catch { return { error: 'Invalid URL' }; }
   const host = u.hostname.replace(/^(www|m)\./, '');
 
   if (host === 'youtu.be' || host.endsWith('youtube.com')) {
@@ -180,19 +213,20 @@ function toEmbed(raw) {
       const m = u.pathname.match(/^\/(?:live|shorts|embed)\/([\w-]{6,})/);
       if (m) id = m[1];
     }
-    if (!id) return { error: '找不到 YouTube 影片 ID\n（請用 watch?v=… 或 /live/… 的網址）' };
-    return { src: `https://www.youtube.com/embed/${id}?autoplay=1&mute=${S.muted ? 1 : 0}&playsinline=1&rel=0` };
+    if (!id) return { error: 'No YouTube video ID found\n(use a watch?v=… or /live/… URL)' };
+    // enablejsapi lets the dock's play/pause-all buttons control the player via postMessage
+    const origin = location.protocol === 'file:' ? '' : '&origin=' + encodeURIComponent(location.origin);
+    return { kind: 'yt', src: `https://www.youtube.com/embed/${id}?autoplay=1&mute=${S.muted ? 1 : 0}&playsinline=1&rel=0&enablejsapi=1${origin}` };
   }
 
   if (host.endsWith('twitch.tv')) {
     const parts = u.pathname.split('/').filter(Boolean);
-    let q;
-    if (u.searchParams.get('channel')) q = 'channel=' + encodeURIComponent(u.searchParams.get('channel'));
-    else if (parts[0] === 'videos' && parts[1]) q = 'video=v' + parts[1];
-    else if (parts[0]) q = 'channel=' + encodeURIComponent(parts[0].toLowerCase());
-    else return { error: '找不到 Twitch 頻道名稱' };
-    const parent = location.hostname || 'localhost';
-    return { src: `https://player.twitch.tv/?${q}&parent=${parent}&autoplay=true&muted=${S.muted}` };
+    let tw;
+    if (u.searchParams.get('channel')) tw = { channel: u.searchParams.get('channel') };
+    else if (parts[0] === 'videos' && parts[1]) tw = { video: 'v' + parts[1] };
+    else if (parts[0]) tw = { channel: parts[0].toLowerCase() };
+    else return { error: 'No Twitch channel name found' };
+    return { kind: 'tw', tw, src: 'twitch:' + (tw.channel || tw.video) };
   }
 
   return { src: u.href };
@@ -220,18 +254,88 @@ function buildStage() {
       const i = s * S.perScene + k;
       const tile = document.createElement('div');
       tile.className = 'tile';
-      tile.innerHTML = `<div class="frame"></div><div class="ctl"><button class="badge">${i + 1}</button>` +
-        `<button class="zoom" title="放大 / 還原（數字鍵 ${i + 1}）">⤢</button></div><div class="note"></div>`;
-      tile.querySelector('.badge').onclick = e => { e.stopPropagation(); openPop(i, e.currentTarget); };
-      tile.querySelector('.zoom').onclick = e => { e.stopPropagation(); toggleFocus(i); };
+      tile.innerHTML = `<div class="frame"></div><div class="ctl"><button class="badge" draggable="true"></button>` +
+        `<button class="zoom">⤢</button></div><div class="note"></div>`;
+      const slot = () => +tile.dataset.slot;   // tiles move between slots when swapped
+      const badge = tile.querySelector('.badge');
+      badge.onclick = e => { e.stopPropagation(); openPop(slot(), e.currentTarget); };
+      badge.ondragstart = e => {
+        dragFrom = slot();
+        e.dataTransfer.setData('text/plain', String(dragFrom));
+        e.dataTransfer.effectAllowed = 'move';
+        document.body.classList.add('dragging');
+        closePop();
+      };
+      badge.ondragend = endDrag;
+      makeDropTarget(tile, slot);
+      tile.querySelector('.zoom').onclick = e => { e.stopPropagation(); toggleFocus(slot()); };
       scene.appendChild(tile);
       tiles[i] = tile;
+      setSlot(tile, i);
       renderTile(i);
     }
     stage.appendChild(scene);
   }
   S.scene = Math.min(S.scene, sceneCount() - 1);
   switchScene(S.scene);
+}
+
+function setSlot(tile, i) {
+  tile.dataset.slot = i;
+  tile.style.order = i % S.perScene;   // visual position inside the scene grid
+  tile.querySelector('.badge').textContent = i + 1;
+  tile.querySelector('.badge').title = 'Click to edit · drag onto another window to swap';
+  tile.querySelector('.zoom').title = `Enlarge / restore (key ${i + 1})`;
+}
+
+// ---------- drag & drop swap ----------
+let dragFrom = null;
+function makeDropTarget(el, slotOf) {
+  el.addEventListener('dragover', e => {
+    if (dragFrom == null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!el.classList.contains('drop')) {
+      document.querySelectorAll('.drop').forEach(d => d.classList.remove('drop'));
+      el.classList.add('drop');
+    }
+  });
+  el.addEventListener('dragleave', e => { if (!el.contains(e.relatedTarget)) el.classList.remove('drop'); });
+  el.addEventListener('drop', e => {
+    e.preventDefault();
+    const from = dragFrom;
+    endDrag();
+    if (from != null) swapSlots(from, slotOf());
+  });
+}
+function endDrag() {
+  dragFrom = null;
+  document.body.classList.remove('dragging');
+  document.querySelectorAll('.drop').forEach(d => d.classList.remove('drop'));
+}
+
+// Swaps the streams (url + note + corner) in slots a and b. The tile elements themselves are swapped, so within
+// one scene only the CSS order changes and nothing reloads; across scenes the tiles must move (iframes reload).
+// Enlarge state stays with the position, so dropping a window onto the enlarged one puts it in the big spot.
+function swapSlots(a, b) {
+  if (a === b) return;
+  for (const arr of [S.urls, S.notes, S.corners]) [arr[a], arr[b]] = [arr[b] ?? '', arr[a] ?? ''];
+  const ta = tiles[a], tb = tiles[b];
+  if (ta.parentNode !== tb.parentNode) {
+    const mark = document.createComment('');
+    ta.replaceWith(mark);
+    tb.replaceWith(ta);
+    mark.replaceWith(tb);
+    for (const t of [ta, tb]) t.querySelector('.frame').dataset.key = '';   // force a fresh player after the move
+  }
+  tiles[a] = tb;
+  tiles[b] = ta;
+  setSlot(tb, a);
+  setSlot(ta, b);
+  renderTile(a);
+  renderTile(b);
+  renderDock();
+  save();
 }
 
 // Lays out scene s: normal grid, or (if a tile is focused) big tile on the left at focusRatio% width
@@ -249,6 +353,13 @@ function applyFocus(s) {
     if (i !== f && S.urls[i]) others.push(i);
   }
   scene.classList.toggle('focus', f != null);
+  // Auto note position follows where the window currently sits: left side -> bottom left, right side -> bottom right
+  const cols = gridOf(p).cols;
+  for (let i = first; i < first + p; i++) {
+    const right = f != null ? i !== f : (i - first) % cols >= cols / 2;
+    const c = S.corners[i];
+    tiles[i].querySelector('.note').classList.toggle('br', c === 'br' || (c !== 'bl' && right));
+  }
   if (f == null) {
     const { cols, rows } = gridOf(p);
     scene.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
@@ -270,6 +381,66 @@ function toggleFocus(i) {
   if (s !== S.scene) switchScene(s); else { renderDock(); save(); }
 }
 
+let twitchLib;
+function loadTwitch() {
+  return twitchLib ||= new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://player.twitch.tv/js/embed/v1.js';
+    sc.onload = resolve;
+    sc.onerror = reject;
+    document.head.appendChild(sc);
+  });
+}
+
+// Twitch.Player creates its iframe without allow="autoplay", so the browser blocks autoplay (and play() from
+// our buttons) unless muted. Add the attribute as the iframe is created, before it starts loading.
+function newTwitchPlayer(box, opts) {
+  const create = document.createElement;
+  document.createElement = function (tag, o) {
+    const el = create.call(document, tag, o);
+    if (String(tag).toLowerCase() === 'iframe') el.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+    return el;
+  };
+  let player;
+  try { player = new Twitch.Player(box.id, opts); } finally { document.createElement = create; }
+  const f = box.querySelector('iframe');
+  if (f && !/autoplay/.test(f.allow)) {   // created some other way: set it and reload
+    f.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+    f.src = f.src;
+  }
+  return player;
+}
+
+// Twitch's iframe has no public postMessage API, so use the official player to get play()/pause()
+function mountTwitch(tile, frame, tw) {
+  frame._twMount = null;
+  const box = document.createElement('div');
+  box.className = 'twbox';
+  box.id = 'tw' + tile.dataset.slot + '_' + Date.now();
+  frame.appendChild(box);
+  loadTwitch().then(() => {
+    if (!box.isConnected) return;
+    const p = frame._tw = newTwitchPlayer(box, Object.assign({
+      parent: [location.hostname || 'localhost'], width: '100%', height: '100%', autoplay: true, muted: S.muted,
+    }, tw));
+    const name = tw.channel || tw.video;
+    for (const ev of ['READY', 'PLAY', 'PLAYING', 'PAUSE', 'PLAYBACK_BLOCKED', 'ONLINE', 'OFFLINE']) {
+      if (Twitch.Player[ev]) p.addEventListener(Twitch.Player[ev], () => console.debug(`[twitch ${name}] ${ev}`));
+    }
+    p.addEventListener(Twitch.Player.READY, () => twStart(tile, frame));
+    p.addEventListener(Twitch.Player.PLAYING, () => { frame._twStarted = true; });
+    if (Twitch.Player.PLAYBACK_BLOCKED) p.addEventListener(Twitch.Player.PLAYBACK_BLOCKED, () => {
+      // Chrome blocks audible autoplay: retry muted (unmute in the player afterwards)
+      if (!p.getMuted()) { p.setMuted(true); p.play(); }
+    });
+  });
+}
+
+// Twitch only plays while its player is visible, so only start players in the active scene
+function twStart(tile, frame) {
+  if (frame._tw && tile.parentNode?.classList.contains('active')) frame._tw.play();
+}
+
 function renderTile(i) {
   const tile = tiles[i];
   if (!tile) return;
@@ -279,11 +450,13 @@ function renderTile(i) {
   if (frame.dataset.key !== key) {
     frame.dataset.key = key;
     frame.innerHTML = '';
+    frame._tw = frame._twMount = null;
+    frame._twStarted = false;
     if (!emb) {
       const ph = document.createElement('div');
       ph.className = 'placeholder empty';
-      ph.innerHTML = `<div style="font-size:34px">＋</div><div>點這裡加入直播網址</div>`;
-      ph.onclick = () => openPop(i, tile.querySelector('.badge'));
+      ph.innerHTML = `<div style="font-size:34px">＋</div><div>Click to add a stream URL</div>`;
+      ph.onclick = () => openPop(+tile.dataset.slot, tile.querySelector('.badge'));
       frame.appendChild(ph);
     } else if (emb.error) {
       const ph = document.createElement('div');
@@ -291,22 +464,27 @@ function renderTile(i) {
       ph.style.whiteSpace = 'pre-line';
       ph.textContent = emb.error;
       frame.appendChild(ph);
+    } else if (emb.kind === 'tw') {
+      // Twitch won't start a player created inside a hidden scene, so mount it when its scene is first shown
+      frame._twMount = () => mountTwitch(tile, frame, emb.tw);
+      if (tile.parentNode?.classList.contains('active') && tile.isConnected) frame._twMount();
     } else {
       const f = document.createElement('iframe');
       f.src = emb.src;
       f.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
       f.allowFullscreen = true;
+      f.dataset.kind = emb.kind || '';
       frame.appendChild(f);
     }
   }
   const note = tile.querySelector('.note');
   note.textContent = (S.notes[i] || '').trim();
-  note.classList.toggle('br', S.corners[i] === 'br');
   tile.classList.toggle('vacant', !S.urls[i]);
   applyFocus(Math.floor(i / S.perScene));
 }
 
 function renderDock() {
+  $('twWarn').hidden = !S.urls.some(u => toEmbed(u)?.kind === 'tw');
   const box = $('scenes');
   box.innerHTML = '';
   const { cols, rows } = gridOf(S.perScene);
@@ -327,6 +505,7 @@ function renderDock() {
       if (!S.urls[i]) cell.className = 'void';
       else if (S.focus[s] === i) cell.className = 'big';
       cell.textContent = name ? `${i + 1} ${name}` : `${i + 1}`;
+      makeDropTarget(cell, () => i);
       mini.appendChild(cell);
     }
     t.append(lbl, mini);
@@ -338,6 +517,11 @@ function renderDock() {
 function switchScene(s) {
   S.scene = Math.max(0, Math.min(s, sceneCount() - 1));
   document.querySelectorAll('.scene').forEach((el, idx) => el.classList.toggle('active', idx === S.scene));
+  sceneEls[S.scene]?.querySelectorAll('.tile').forEach(t => {
+    const fr = t.querySelector('.frame');
+    if (fr._twMount) fr._twMount();
+    else if (fr._tw && !fr._twStarted) twStart(t, fr);
+  });
   closePop();
   renderDock();
   save();
@@ -347,7 +531,7 @@ function applyNoteSize() { document.documentElement.style.setProperty('--note-si
 function applyClean() {
   $('app').classList.toggle('clean', S.clean);
   $('app').classList.remove('peek');
-  $('cleanBtn').textContent = S.clean ? '顯示 UI (H)' : '隱藏 UI (H)';
+  $('cleanBtn').textContent = S.clean ? 'Show UI (H)' : 'Hide UI (H)';
 }
 
 // ---------- popover ----------
@@ -374,7 +558,7 @@ function closePop() {
   document.querySelectorAll('.badge.on').forEach(b => b.classList.remove('on'));
 }
 function markCorner() {
-  const c = S.corners[popIdx] === 'br' ? 'br' : 'bl';
+  const c = ['bl', 'br'].includes(S.corners[popIdx]) ? S.corners[popIdx] : 'auto';
   document.querySelectorAll('#pop [data-corner]').forEach(b => b.classList.toggle('sel', b.dataset.corner === c));
 }
 function setUrl(i, url) {
@@ -400,7 +584,30 @@ document.addEventListener('mousedown', e => {
 // ---------- dock tools ----------
 $('fontDown').onclick = () => { S.noteSize = Math.max(10, S.noteSize - 2); applyNoteSize(); save(); };
 $('fontUp').onclick = () => { S.noteSize = Math.min(48, S.noteSize + 2); applyNoteSize(); save(); };
+// YouTube: same postMessage protocol the official IFrame API uses. Twitch: the Twitch.Player instance.
+function controlAll(play) {
+  document.querySelectorAll('.tile iframe[data-kind="yt"]').forEach(f => {
+    f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: play ? 'playVideo' : 'pauseVideo', args: [] }), 'https://www.youtube.com');
+  });
+  document.querySelectorAll('.tile').forEach(t => {
+    const fr = t.querySelector('.frame');
+    if (!fr._tw) return;
+    if (!play) fr._tw.pause();
+    else if (t.parentNode.classList.contains('active')) twStart(t, fr);
+    else fr._tw.play();
+  });
+}
+$('playAll').onclick = () => controlAll(true);
+$('pauseAll').onclick = () => controlAll(false);
 $('cleanBtn').onclick = () => { S.clean = !S.clean; applyClean(); save(); };
+$('clearNotesBtn').onclick = () => {
+  if (!S.notes.some(n => n && n.trim()) || !confirm('Clear all notes?')) return;
+  S.notes = [];
+  closePop();
+  tiles.forEach((_, i) => renderTile(i));
+  renderDock();
+  save();
+};
 $('hot').onmouseenter = () => $('app').classList.add('peek');
 $('dock').onmouseleave = () => $('app').classList.remove('peek');
 $('editBtn').onclick = showSetup;
@@ -416,7 +623,11 @@ $('ratioBtn').onclick = () => {
 };
 
 document.addEventListener('keydown', e => {
-  if (e.target.matches('input, textarea, select') || $('app').hidden) {
+  if (!$('setup').hidden) {
+    if (e.key === 'Escape' && !$('cancelBtn').hidden) $('cancelBtn').click();
+    return;
+  }
+  if (e.target.matches('input, textarea, select')) {
     if (e.key === 'Escape') closePop();
     return;
   }
@@ -433,14 +644,15 @@ document.addEventListener('keydown', e => {
 });
 
 // ---------- setup ----------
+// The stage is left running while the setup screen is open, so Cancel returns without reloading streams.
 function showSetup() {
   closePop();
   $('app').hidden = true;
-  $('stage').innerHTML = '';   // stop all streams
   $('setup').hidden = false;
   $('urlInput').value = S.urls.filter(Boolean).join('\n');
   $('perScene').value = String(S.perScene);
   $('muted').checked = S.muted;
+  $('cancelBtn').hidden = !S.urls.some(Boolean);
   $('urlInput').focus();
 }
 function startApp() {
@@ -451,6 +663,11 @@ function startApp() {
   buildStage();
   applyRatio();
 }
+$('cancelBtn').onclick = () => {
+  if (!sceneEls.length) return startApp();   // first load: resume the saved list
+  $('setup').hidden = true;
+  $('app').hidden = false;
+};
 $('startBtn').onclick = () => {
   const urls = $('urlInput').value.split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
   if (!urls.length) { $('urlInput').focus(); return; }
@@ -463,6 +680,7 @@ $('startBtn').onclick = () => {
 };
 
 $('fileWarn').hidden = location.protocol !== 'file:';
+$('localUrl').textContent = 'http://localhost:8000/' + location.pathname.split('/').pop().replace(/^index\.html$/, '');
 showSetup();
 </script>
 </body>
