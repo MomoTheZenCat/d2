@@ -43,9 +43,32 @@ Each jungle map is a **2 × 6 grid of tiles**. Rows go **1 (south, near Kurast D
                                         \  /
 ```
 
-- Each percentage is the chance **that tile has a jungle exit**. Spider Forest has 1 or 2 jungle exits.
+- Each percentage is the chance **that tile has a jungle exit**. Spider Forest has 1 or 2 jungle exits, so the tiles add up to about **141%** (1 × 58.9% + 2 × 41.1%), not 100%.
 - **1 exit (58.9%):** it leads to the Great Marsh, and you have to go through it.
 - **2 exits (41.1%):** **you can skip the Great Marsh.** The **more northern** exit leads to Flayer Jungle (**6a > 5 > 3**). If both exits are on the same row (3a + 3b, or 5a + 5b), you can't tell which one it is.
+
+**When Spider Forest has only 1 exit (58.9%), where it is:**
+
+| Exit | Chance |
+|---|---|
+| 5a | 21.2% |
+| 5b | 21.2% |
+| 3a | 19.4% |
+| 3b | 19.4% |
+| 6a | 18.8% |
+
+**When it has 2 exits (41.1%), which pair:**
+
+| Pair | Chance | Exit to Flayer Jungle |
+|---|---|---|
+| 3a + 3b | 13.9% | can't tell |
+| 3a + 5b | 13.1% | 5b |
+| 3b + 5a | 13.1% | 5a |
+| 3a + 6a | 12.4% | 6a |
+| 3b + 6a | 12.4% | 6a |
+| 5a + 5b | 12.2% | can't tell |
+| 5a + 6a | 11.4% | 6a |
+| 5b + 6a | 11.4% | 6a |
 
 ---
 
