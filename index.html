@@ -681,7 +681,8 @@ $('startBtn').onclick = () => {
 
 $('fileWarn').hidden = location.protocol !== 'file:';
 $('localUrl').textContent = 'http://localhost:8000/' + location.pathname.split('/').pop().replace(/^index\.html$/, '');
-showSetup();
+// On refresh, go straight back to the saved list; the setup screen is only for the first visit (or Edit list)
+if (S.urls.some(Boolean)) startApp(); else showSetup();
 </script>
 </body>
 </html>
