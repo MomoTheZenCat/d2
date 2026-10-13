@@ -55,7 +55,7 @@ In D2R's data, the monsters whose attacks actually **freeze** are:
 
 | Monster | Freeze source | Where |
 |---|---|---|
-| **Carver Shaman** (`fallenshaman6`) ⭐ | Skill **ShamanIce**, which fires a **Glacial Spike** (`glacialspike`, freeze on hit) | **Arreat Plateau**, **Glacial Caves Level 1** (Act 5, **Nightmare and Hell**) |
+| **Carver Shaman** (`fallenshaman6`) ⭐ | Skill **ShamanIce**, which fires a **Glacial Spike** (`glacialspike`, freeze on hit) | **Arreat Plateau**, **The Ancients' Way** (Act 5, **Nightmare and Hell**) |
 | Summoner | Glacial Spike | Arcane Sanctuary |
 | Diablo | DiabCold | Chaos Sanctuary |
 | Baal | Melee attack 2 (freeze element) | Worldstone Chamber |
@@ -75,7 +75,7 @@ Freeze duration on monsters is **divided by difficulty** (`MonsterFreezeDivisor`
 ## 4. How to do it
 
 1. **Revive a monster** that can be frozen (negative `coldeffect`). Note the **time you revived it**.
-2. Go to **Arreat Plateau** or **Glacial Caves Level 1** on **Nightmare or Hell** and find **Carver Shamans**.
+2. Go to **Arreat Plateau** or **The Ancients' Way** on **Nightmare or Hell** and find **Carver Shamans**.
 3. Around **2:55–3:00 after the revive**, make sure the revive is **fighting the shamans** and getting hit by their **Glacial Spikes**.
 4. The revive needs to be **frozen at the 180-second mark** (4500 frames after the revive was cast).
 5. If the revive is still alive a few seconds after 3:00, it worked, and it **won't expire**.
