@@ -120,26 +120,26 @@ Same rule again. The side clockwise after the one you came in from is the most l
 ## 4. Predict Plains of Despair from Act 1 ⭐
 
 **Every act is generated from the same game seed.** The random number that places Blood Moor in Act 1 is the same number that places Plains of Despair in Act 4.
-So once you know **where Stony Field and Blood Moor are around Cold Plains**, Plains of Despair is **100% decided in 75% of games** and 50/50 in the rest.
+So once you note **the exits of Blood Moor and Cold Plains**, Plains of Despair is **100% decided in 75% of games** and 50/50 in the rest.
 
-| Stony Field (around Cold Plains) | Blood Moor (around Cold Plains) | Plains of Despair (around Outer Steppes) |
+| Blood Moor → Cold Plains exit (side of Blood Moor) | Cold Plains → Stony Field exit (side of Cold Plains) | Outer Steppes → Plains of Despair exit (side of Outer Steppes) |
 |---|---|---|
-| bottom-left | top-left | top-right 50% / bottom-left 50% |
-| bottom-left | top-right | **top-right 100%** |
-| bottom-left | bottom-right | **bottom-right 100%** |
-| top-left | bottom-left | **bottom-left 100%** |
-| top-left | top-right | **top-right 100%** |
-| top-left | bottom-right | **bottom-right 100%** |
-| top-right | bottom-left | **bottom-left 100%** |
-| top-right | top-left | **top-right 100%** |
-| top-right | bottom-right | bottom-right 50% / top-right 50% |
-| bottom-right | bottom-left | bottom-right 50% / bottom-left 50% |
-| bottom-right | top-left | **top-right 100%** |
+| top-left | top-left | **bottom-right 100%** |
+| top-left | top-right | bottom-right 50% / top-right 50% |
+| top-left | bottom-left | **bottom-right 100%** |
+| top-right | top-left | **bottom-left 100%** |
+| top-right | top-right | **bottom-left 100%** |
+| top-right | bottom-right | bottom-right 50% / bottom-left 50% |
 | bottom-right | top-right | **top-right 100%** |
+| bottom-right | bottom-right | **top-right 100%** |
+| bottom-right | bottom-left | top-right 50% / bottom-left 50% |
+| bottom-left | top-left | **top-right 100%** |
+| bottom-left | bottom-right | **top-right 100%** |
+| bottom-left | bottom-left | **top-right 100%** |
 
-**Short version:** Plains of Despair is on **the same side as Blood Moor**, except:
-- If Blood Moor is **top-left**, Plains is **top-right** (top-left is the Fortress's side).
-- If Blood Moor is **one step clockwise from Stony Field**, it's 50/50 between Blood Moor's side and Stony Field's side (top-left becomes top-right).
+**Short version (in running order):** the Outer Steppes → Plains of Despair exit is **opposite the Blood Moor exit**. Exceptions:
+- If the Blood Moor exit is **bottom-right**, the Plains exit is **top-right** (the opposite side, top-left, is the Fortress).
+- If the Cold Plains exit is **one step clockwise** from the Blood Moor exit (the three 50% rows), it's 50/50.
 
 City of the Damned can't be predicted from Act 1 beyond its own rule in section 3.
 
@@ -245,4 +245,4 @@ River of Flame is a small maze (6 rooms of 24×24 tiles) with three special ends
 
 ## 7. Caveats
 - **Source version:** D2MOO is the 1.10 code, not D2R's own program. The Act 1 → Act 4 link needs both acts to use the same seed and draw in the same order, which is true in D2MOO.
-- **Not tested in game.** The Act 1 → Act 4 table is the easiest to check: note Stony Field and Blood Moor around Cold Plains, then look at Outer Steppes.
+- **Not tested in game.** The Act 1 → Act 4 table is the easiest to check: note the Blood Moor and Cold Plains exits, then look at the Outer Steppes exit.

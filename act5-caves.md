@@ -27,13 +27,13 @@ Each one is either **tall** (64×160, long along the top-right / bottom-left lin
 | Frozen Tundra | bottom-left end (tall) / bottom-right end (wide), from Glacial Trail | **top-right** end (The Ancients' Way) | **top-left** end (The Ancients' Way) |
 
 ### The rule, in one line each
-- **Frigid Highlands and Frozen Tundra run along Stony Field's line (100%).** Look at where Stony Field is around Cold Plains:
-  - Stony Field **top-right or bottom-left** of Cold Plains → both are **tall** → run **top-right**.
-  - Stony Field **top-left or bottom-right** of Cold Plains → both are **wide** → run **top-left**.
-- **Arreat Plateau runs along Blood Moor's line (100% in 75% of games).** Same idea, using where Blood Moor is around Cold Plains:
-  - Blood Moor **top-right or bottom-left** → **tall** → run **top-right**.
-  - Blood Moor **top-left or bottom-right** → **wide** → run **top-left**.
-  - **Exception (25% of games):** if Blood Moor is **one step clockwise from Stony Field** (Stony Field bottom-left + Blood Moor top-left, Stony Field top-left + Blood Moor top-right, Stony Field top-right + Blood Moor bottom-right, or Stony Field bottom-right + Blood Moor bottom-left), it's 50/50.
+- **Frigid Highlands and Frozen Tundra run along the line of the Cold Plains → Stony Field exit (100%):**
+  - Cold Plains exit **top-right or bottom-left** → both are **tall** → run **top-right**.
+  - Cold Plains exit **top-left or bottom-right** → both are **wide** → run **top-left**.
+- **Arreat Plateau runs along the line of the Blood Moor → Cold Plains exit (100% in 75% of games):**
+  - Blood Moor exit **top-right or bottom-left** → **tall** → run **top-right**.
+  - Blood Moor exit **top-left or bottom-right** → **wide** → run **top-left**.
+  - **Exception (25% of games):** if the Cold Plains exit is **one step clockwise** from the Blood Moor exit (Blood Moor exit bottom-right + Cold Plains exit bottom-left, bottom-left + top-left, top-left + top-right, top-right + bottom-right), it's 50/50.
 
 The same Act 1 numbers also set Act 4: see [act4-maps.md](act4-maps.md).
 
@@ -174,5 +174,5 @@ Example: Halls of the Dead 1's start room has its wall on the top-left → World
 
 ## 6. Caveats
 - **Source version:** D2MOO is the 1.10 code, not D2R's own program.
-- **Not tested in game.** The easiest checks: note which line Stony Field is on around Cold Plains, then which way Frigid Highlands runs; or note the start-room wall in Halls of the Dead 1 and in Worldstone Keep 1.
+- **Not tested in game.** The easiest checks: note which line the Cold Plains → Stony Field exit is on, then which way Frigid Highlands runs; or note the start-room wall in Halls of the Dead 1 and in Worldstone Keep 1.
 - If the maze has no dead end with the needed facing, the game adds a new room on that side. The rule still holds.
