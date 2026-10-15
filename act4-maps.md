@@ -143,9 +143,93 @@ So once you know **where Stony Field and Blood Moor are around Cold Plains**, Pl
 
 City of the Damned can't be predicted from Act 1 beyond its own rule in section 3.
 
-## 5. River of Flame and Chaos Sanctuary
+## 5. City of the Damned → River of Flame → Chaos Sanctuary ⭐
 
-Fixed layouts. River of Flame is entered from the stairs in City of the Damned, and the Chaos Sanctuary layout is fixed. The seal variants are rolled separately and aren't covered here.
+### 5.1 City of the Damned: find the stairs (the waypoint is right next to them)
+- The stairs down to River of Flame and **City of the Damned's waypoint are in the same room** (`warplava.ds1`). Find one and you've found the other.
+- It's the **first thing placed** in City of the Damned, using the same biased cell shuffle as Act 1's Forgotten Tower, so it leans toward the **top corner of the map**:
+
+```
+                                                      /\
+                                                    /    \
+                                                  /        \
+                                                /            \
+                                              /                \                ← check here first
+                                            /       top 35%      \
+                                          /    \              /    \
+                                        /        \          /        \
+                                      /            \      /            \
+                                    /                \  /                \
+                                  <     left 22%       X      right 22%    >
+                                    \               /    \               /
+                                      \           /        \           /
+                                        \       /            \       /
+                                          \   /                \   /
+                                            \     bottom 22%     /
+                                              \                /
+                                                \            /
+                                                  \        /
+                                                    \    /
+                                                      \/
+```
+
+- The single most likely spot is **the cell just inside the top corner (14%)**, then along the top-right edge.
+- Halves: **top-right half 56%**, **top-left half 57%**.
+- It's never within 8 tiles of the map edge.
+
+### 5.2 River of Flame: go top-right
+River of Flame is a small maze (6 rooms of 24×24 tiles) with three special ends:
+
+```
+                                                      /\
+                                                    /    \
+                                                  /        \
+                                                /            \
+                                              /                \
+                     Hephasto's forge 50%   /                    \  Waypoint + bridge to Chaos Sanctuary
+                                          /                        \
+                                        /                            \
+                                      /                                \
+                                    /                                    \
+                                  <             River of Flame             >
+                                    \                                    /
+                                      \                                /
+                                        \                            /
+                                          \                        /
+       Entrance (from City of the Damned)   \                    /  Hephasto's forge 50%
+                                              \                /
+                                                \            /
+                                                  \        /
+                                                    \    /
+                                                      \/
+```
+
+- **Entrance from City of the Damned: always at the bottom-left end** of the maze (the room furthest bottom-left gets the stairs on its bottom-left side).
+- **Waypoint: always at the top-right end.** It's in the first room of the bridge that runs top-right into the Chaos Sanctuary.
+- **Hephasto's forge: a side branch, top-left or bottom-right (50/50).** It replaces a dead-end room that faces east or west.
+
+**So: from the entrance, keep heading top-right.** A branch going off top-left or bottom-right may be the forge.
+
+**When top-right is a dead end: turn left (top-left) or right (bottom-right)?**
+
+| The route to the waypoint | Chance |
+|---|---|
+| Goes top-right all the way | 22% |
+| First turns **left** (top-left) | 39% |
+| First turns **right** (bottom-right) | 39% |
+
+- **No preference**: left and right are equal.
+- **One small clue, the forge:** if you've already seen Hephasto's forge **on one side of the entrance**, the waypoint route turns **toward that same side** more often (**44%** vs 32%). The maze tends to spread out to one side, and both the forge and the waypoint end up there.
+- The route is short: usually **5–6 rooms** (24 tiles each). It never needs to go back toward the bottom-left.
+- **Where the waypoint is, compared with the entrance:** usually **4 rooms toward the top-right** (3: 19%, 4: 54%, 5: 24%), and usually **shifted sideways**:
+
+  | Shifted sideways by | 0 rooms (in line) | 1 room | 2 rooms | 3+ rooms |
+  |---|---|---|---|---|
+  | Chance | 28% | **42%** | 22% | 8% |
+
+  So it's in a straight line only 28% of the time (and a fully straight walk only 22%). The usual case is **about 4 rooms top-right and 1 room to one side**.
+
+**Source:** `D2Common/src/Drlg/DrlgMaze.cpp` → `DRLGMAZE_PlaceAct4Lava` (entrance via `DRLGMAZE_GetFreeLocationForRoomNorth`, which picks the largest Y; bridge via `DRLGMAZE_GetFreeLocationForRoomSouth`, which picks the smallest Y, then 3 rooms toward Y−; forge `R & 1` picks Forge W / Forge E); D2R map files `Act4/Diab/BridgeLava.ds1` and `Act4/Mesa/WarpLava.ds1` both contain object 0 = `WaypointOutsideAct4`; `Act4/Lava/ForgeE.ds1` / `ForgeW.ds1` contain object 42 = `SoulStoneForge`. City placement simulated over 300,000 games.
 
 ---
 
